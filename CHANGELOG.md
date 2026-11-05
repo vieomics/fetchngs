@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Enhancements & fixes
 
-- [PR #XXX](https://github.com/vieomics/fetchngs/pull/XXX) - Add `aria2c` download method with configurable connections per file and an S3 source for NCBI SRA Open Data Program archives.
+- [PR #1](https://github.com/vieomics/fetchngs/pull/1) - Add `aria2c` download method with configurable connections per file and an S3 source for NCBI SRA Open Data Program archives.
 
 ## [[1.13.0](https://github.com/nf-core/fetchngs/releases/tag/1.13.0)] - 2026-09-15
 

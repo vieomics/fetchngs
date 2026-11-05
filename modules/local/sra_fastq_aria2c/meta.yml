@@ -1,0 +1,72 @@
+name: sra_fastq_aria2c
+description: Download FASTQ files from NCBI/ENA via aria2c with MD5 validation
+keywords:
+  - fastq
+  - download
+  - aria2c
+  - sra
+  - ena
+tools:
+  - aria2:
+      description: Multi-protocol download utility with support for multiple connections per file
+      homepage: https://aria2.github.io/
+      documentation: https://aria2.github.io/manual/en/html/
+      licence:
+        - "GPL-2.0-or-later"
+input:
+  - - meta:
+        type: map
+        description: >
+          Groovy Map containing sample information e.g. [ id:'test', single_end:false ]
+    - fastq:
+        type: string
+        description: >
+          ENA download URL(s) for FASTQ file(s)
+  - - connections:
+        type: integer
+        description: >
+          Number of connections to use per FASTQ file
+output:
+  fastq:
+    - - meta:
+          type: map
+          description: >
+            Groovy Map containing sample information
+      - "*fastq.gz":
+          type: file
+          description: Downloaded FASTQ file(s)
+          pattern: "*fastq.gz"
+  md5:
+    - - meta:
+          type: map
+          description: >
+            Groovy Map containing sample information
+      - "*md5":
+          type: file
+          description: MD5 checksum files
+          pattern: "*md5"
+  versions_aria2:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - aria2:
+          type: string
+          description: The name of the tool
+      - aria2c --version | head -n 1 | sed "s/^aria2 version //":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - aria2:
+          type: string
+          description: The name of the tool
+      - aria2c --version | head -n 1 | sed "s/^aria2 version //":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@vieomics"
+maintainers:
+  - "@vieomics"

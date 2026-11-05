@@ -76,7 +76,15 @@ See [issue #260](https://github.com/nf-core/fetchngs/issues/260) for more detail
 
 ### Primary options for downloading data
 
-If the appropriate download links are available, the pipeline uses FTP by default to download FastQ files by setting the `--download_method ftp` parameter. If you are having issues and prefer to use sra-tools, Aspera or fastq-dl instead, you can set the [`--download_method`](https://nf-co.re/fetchngs/parameters#download_method) parameter to `--download_method sratools`, `--download_method aspera` or `--download_method fastq-dl`, respectively.
+If the appropriate download links are available, the pipeline uses FTP by default to download FastQ files by setting the `--download_method ftp` parameter. If you are having issues and prefer to use aria2c, sra-tools, Aspera or fastq-dl instead, you can set the [`--download_method`](https://nf-co.re/fetchngs/parameters#download_method) parameter to `--download_method aria2c`, `--download_method sratools`, `--download_method aspera` or `--download_method fastq-dl`, respectively.
+
+### aria2c download method
+
+`--download_method aria2c` downloads FastQ files with multiple connections per file. Set the number of connections with `--aria2c_connections` (default: 16).
+
+The default `--aria2c_source ena` uses the same ENA FastQ links as the `ftp` method. If a run has no ENA FastQ links, the pipeline falls back to sra-tools for that run.
+
+Set `--aria2c_source s3` to download `.sra` archives from the NCBI SRA Open Data Program (`sra-pub-run-odp`) and convert them to FastQ with `fasterq-dump`. Use the S3 source when ENA download hosts are slow or unreachable. The S3 source covers public data only; runs with a `--dbgap_key` fall back to sra-tools. The `.sra` archive remains in the work directory alongside the FastQ output, so allow disk space for both.
 
 ### Aspera download method limitations
 

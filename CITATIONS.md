@@ -10,6 +10,8 @@
 
 ## Pipeline tools
 
+- [aria2](https://aria2.github.io/)
+
 - [Aspera CLI](https://github.com/IBM/aspera-cli)
 
 - [fastq-dl](https://github.com/rpetit3/fastq-dl)

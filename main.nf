@@ -15,9 +15,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { FETCHNGS                } from './workflows/fetchngs'
+include { FETCHNGS } from './workflows/fetchngs'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_fetchngs_pipeline'
-include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_fetchngs_pipeline'
+include { PIPELINE_COMPLETION } from './subworkflows/local/utils_nfcore_fetchngs_pipeline'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     NAMED WORKFLOWS FOR PIPELINE
@@ -40,6 +40,8 @@ workflow NFCORE_FETCHNGS {
         params.outdir,
         params.dbgap_key ? file(params.dbgap_key, checkIfExists: true) : [],
         params.download_method,
+        params.aria2c_connections,
+        params.aria2c_source,
         params.ena_metadata_fields ?: '',
         params.nf_core_pipeline ?: '',
         params.nf_core_rnaseq_strandedness ?: 'auto',

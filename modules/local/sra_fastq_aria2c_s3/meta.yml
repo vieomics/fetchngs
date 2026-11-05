@@ -1,0 +1,63 @@
+name: sra_fastq_aria2c_s3
+description: Download SRA archives from the NCBI Open Data Program S3 bucket using aria2c
+keywords:
+  - fastq
+  - download
+  - aria2c
+  - sra
+  - s3
+tools:
+  - aria2:
+      description: Multi-protocol download utility with support for multiple connections per file
+      homepage: https://aria2.github.io/
+      documentation: https://aria2.github.io/manual/en/html/
+      licence:
+        - "GPL-2.0-or-later"
+input:
+  - - meta:
+        type: map
+        description: >
+          Groovy Map containing sample information e.g. [ id:'test', single_end:false ]
+    - run_accession:
+        type: string
+        description: >
+          SRA run accession used to construct the Open Data Program object path
+  - - connections:
+        type: integer
+        description: >
+          Number of connections to use for the SRA archive download
+output:
+  sra:
+    - - meta:
+          type: map
+          description: >
+            Groovy Map containing sample information
+      - ${run_accession}:
+          type: directory
+          description: Directory containing the downloaded SRA archive
+          pattern: "${run_accession}/${run_accession}.sra"
+  versions_aria2:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - aria2:
+          type: string
+          description: The name of the tool
+      - aria2c --version | head -n 1 | sed "s/^aria2 version //":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - aria2:
+          type: string
+          description: The name of the tool
+      - aria2c --version | head -n 1 | sed "s/^aria2 version //":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@vieomics"
+maintainers:
+  - "@vieomics"

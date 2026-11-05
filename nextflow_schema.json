@@ -60,9 +60,25 @@
                     "type": "string",
                     "default": "ftp",
                     "fa_icon": "fas fa-download",
-                    "enum": ["aspera", "fastq-dl", "ftp", "sratools"],
-                    "description": "Method to download FastQ files. Available options are 'aspera', 'fastq-dl', 'ftp' or 'sratools'. Default is 'ftp'.",
-                    "help_text": "FTP and Aspera CLI download FastQ files directly from the ENA FTP whereas sratools uses sra-tools to download *.sra files and convert to FastQ."
+                    "enum": ["aria2c", "aspera", "fastq-dl", "ftp", "sratools"],
+                    "description": "Method to download FastQ files. Available options are 'aria2c', 'aspera', 'fastq-dl', 'ftp' or 'sratools'. Default is 'ftp'.",
+                    "help_text": "aria2c downloads FastQ files from ENA, or *.sra files from the NCBI SRA Open Data Program when '--aria2c_source s3' is set. FTP downloads FastQ files directly from the ENA FTP. Aspera CLI downloads via fasp. fastq-dl queries ENA by accession. sratools downloads *.sra files and converts them to FastQ."
+                },
+                "aria2c_connections": {
+                    "type": "integer",
+                    "default": 16,
+                    "minimum": 1,
+                    "fa_icon": "fas fa-network-wired",
+                    "description": "Number of connections per file for the 'aria2c' download method.",
+                    "help_text": "aria2c opens this many connections to the ENA or S3 server for each file. The default of 16 improves throughput on links that throttle individual connections. This parameter is ignored unless '--download_method aria2c' is set."
+                },
+                "aria2c_source": {
+                    "type": "string",
+                    "default": "ena",
+                    "enum": ["ena", "s3"],
+                    "fa_icon": "fas fa-cloud-download-alt",
+                    "description": "Source for the 'aria2c' download method. Available options are 'ena' or 's3'. Default is 'ena'.",
+                    "help_text": "'ena' downloads FastQ files directly from ENA. 's3' downloads *.sra archives from the NCBI SRA Open Data Program and converts them to FastQ with fasterq-dump. Use 's3' when ENA download hosts are slow or unreachable. The S3 source covers public data only."
                 },
                 "skip_fastq_download": {
                     "type": "boolean",

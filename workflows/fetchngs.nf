@@ -4,12 +4,14 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { ASPERA_CLI                                   } from '../modules/local/aspera_cli'
-include { MULTIQC_MAPPINGS_CONFIG                      } from '../modules/local/multiqc_mappings_config'
-include { SRA_FASTQ_FTP                                } from '../modules/local/sra_fastq_ftp'
-include { SRA_IDS_TO_RUNINFO                           } from '../modules/local/sra_ids_to_runinfo'
-include { SRA_RUNINFO_TO_FTP                           } from '../modules/local/sra_runinfo_to_ftp'
-include { CHANNEL_SRA_CREATE_CSV                       } from '../subworkflows/local/channel_sra_create_csv'
+include { ASPERA_CLI } from '../modules/local/aspera_cli'
+include { MULTIQC_MAPPINGS_CONFIG } from '../modules/local/multiqc_mappings_config'
+include { SRA_FASTQ_ARIA2C } from '../modules/local/sra_fastq_aria2c'
+include { SRA_FASTQ_FTP } from '../modules/local/sra_fastq_ftp'
+include { SRA_IDS_TO_RUNINFO } from '../modules/local/sra_ids_to_runinfo'
+include { SRA_RUNINFO_TO_FTP } from '../modules/local/sra_runinfo_to_ftp'
+include { CHANNEL_SRA_CREATE_CSV } from '../subworkflows/local/channel_sra_create_csv'
+include { FASTQ_DOWNLOAD_ARIA2C_S3_FASTERQDUMP } from '../subworkflows/local/fastq_download_aria2c_s3_fasterqdump'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -17,9 +19,9 @@ include { CHANNEL_SRA_CREATE_CSV                       } from '../subworkflows/l
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { FASTQDL                                      } from '../modules/nf-core/fastqdl'
+include { FASTQDL } from '../modules/nf-core/fastqdl'
 include { FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS } from '../subworkflows/nf-core/fastq_download_prefetch_fasterqdump_sratools'
-include { softwareVersionsToYAML                       } from 'plugin/nf-core-utils'
+include { softwareVersionsToYAML } from 'plugin/nf-core-utils'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +35,8 @@ workflow FETCHNGS {
     outdir
     dbgap_key
     download_method
+    aria2c_connections
+    aria2c_source
     ena_metadata_fields
     nf_core_pipeline
     nf_core_rnaseq_strandedness
@@ -70,9 +74,19 @@ workflow FETCHNGS {
             if (download_method == 'fastq-dl') {
                 final_download_method = 'fastq-dl'
             }
-            if ((!meta.fastq_aspera && !meta.fastq_1) || download_method == 'sratools') {
+            if (download_method == 'aria2c' && aria2c_source == 's3') {
+                final_download_method = dbgap_key || !meta.run_accession ? 'sratools' : 'aria2c_s3'
+            }
+            if (download_method == 'aria2c' && aria2c_source != 's3') {
+                final_download_method = meta.fastq_1 ? 'aria2c' : 'sratools'
+            }
+            if (final_download_method != 'aria2c_s3' && ((!meta.fastq_aspera && !meta.fastq_1) || download_method == 'sratools')) {
                 final_download_method = 'sratools'
             }
+            aria2c: final_download_method == 'aria2c'
+            return [meta, [meta.fastq_1, meta.fastq_2]]
+            aria2c_s3: final_download_method == 'aria2c_s3'
+            return [meta, meta.run_accession]
             aspera: final_download_method == 'aspera'
             return [meta, meta.fastq_aspera.tokenize(';').take(2)]
             fastqdl: final_download_method == 'fastq-dl'
@@ -89,6 +103,16 @@ workflow FETCHNGS {
         SRA_FASTQ_FTP(ch_sra_reads.ftp)
 
         //
+        // MODULE: Download FastQ files via aria2c with multiple connections per file
+        //
+        SRA_FASTQ_ARIA2C(ch_sra_reads.aria2c, aria2c_connections)
+
+        //
+        // SUBWORKFLOW: Download SRA archives from the Open Data Program and convert them to FastQ
+        //
+        FASTQ_DOWNLOAD_ARIA2C_S3_FASTERQDUMP(ch_sra_reads.aria2c_s3, dbgap_key, aria2c_connections)
+
+        //
         // SUBWORKFLOW: Download sequencing reads without FTP links using sra-tools.
         //
         FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS(ch_sra_reads.sratools, dbgap_key)
@@ -102,6 +126,8 @@ workflow FETCHNGS {
 
         // Isolate FASTQ channel which will be added to emit block
         ch_sra_metadata = SRA_FASTQ_FTP.out.fastq
+            .mix(SRA_FASTQ_ARIA2C.out.fastq)
+            .mix(FASTQ_DOWNLOAD_ARIA2C_S3_FASTERQDUMP.out)
             .mix(FASTQ_DOWNLOAD_PREFETCH_FASTERQDUMP_SRATOOLS.out.reads)
             .mix(ASPERA_CLI.out.fastq)
             .mix(FASTQDL.out.fastq)
@@ -140,9 +166,9 @@ workflow FETCHNGS {
     )
 
     emit:
-    samplesheet     = ch_samplesheet
-    mappings        = ch_mappings
+    samplesheet = ch_samplesheet
+    mappings = ch_mappings
     sample_mappings = ch_sample_mappings_yml
-    sra_metadata    = ch_sra_metadata
-    versions        = ch_collated_versions
+    sra_metadata = ch_sra_metadata
+    versions = ch_collated_versions
 }

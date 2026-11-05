@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## dev
+
+### Enhancements & fixes
+
+- [PR #1](https://github.com/vieomics/fetchngs/pull/1) - Add `aria2c` download method with configurable connections per file and an S3 source for NCBI SRA Open Data Program archives.
+
 ## [[1.13.0](https://github.com/nf-core/fetchngs/releases/tag/1.13.0)] - 2026-09-15
 
 ### Credits
